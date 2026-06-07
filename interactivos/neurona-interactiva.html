@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neurona Interactiva — Neurocomputación</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #a78bfa;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 32px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 700px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: #1e2130;
+    border: 1px solid #2d3148;
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .panel h2 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7c8db5;
+    margin-bottom: 16px;
+  }
+
+  /* ── Sliders ── */
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .input-label {
+    width: 28px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #93c5fd;
+    text-align: center;
+  }
+
+  .input-val {
+    width: 38px;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 4px;
+    background: #2d3148;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #a78bfa;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover {
+    background: #c4b5fd;
+  }
+
+  .weight-row input[type=range] {
+    background: linear-gradient(to right, #2d3148 0%, #2d3148 50%, #2d3148 100%);
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    color: #475569;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+
+  /* ── Visualización SVG ── */
+  #neuron-svg {
+    width: 100%;
+    height: 240px;
+  }
+
+  /* ── Output ── */
+  .output-block {
+    background: #141624;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .formula {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  .formula span {
+    color: #c4b5fd;
+    font-weight: 700;
+  }
+
+  .output-bar-wrap {
+    background: #0f1117;
+    border-radius: 6px;
+    height: 28px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .output-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.15s ease, background 0.3s ease;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    min-width: 2px;
+  }
+
+  .output-number {
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 10px;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+  }
+
+  .activation-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin: 8px auto;
+    display: block;
+    text-align: center;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: 1px solid #2d3148;
+    background: transparent;
+    color: #7c8db5;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: #a78bfa22;
+    border-color: #a78bfa;
+    color: #a78bfa;
+  }
+
+  /* ── Info cards ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .info-card {
+    background: #141624;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 3px solid #2d3148;
+    transition: border-color 0.3s;
+  }
+
+  .info-card.highlight { border-left-color: #a78bfa; }
+
+  .info-card .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+
+  .info-card .value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Biological comparison ── */
+  .bio-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  .bio-table th {
+    text-align: left;
+    color: #475569;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 6px 8px;
+    border-bottom: 1px solid #2d3148;
+  }
+
+  .bio-table td {
+    padding: 8px;
+    border-bottom: 1px solid #1a1e2e;
+    vertical-align: top;
+  }
+
+  .bio-table tr:last-child td { border-bottom: none; }
+
+  .bio-cell { color: #86efac; }
+  .ai-cell  { color: #93c5fd; }
+
+  /* ── Reset btn ── */
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #2d3148;
+    background: transparent;
+    color: #7c8db5;
+    font-size: 0.82rem;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+  }
+
+  .btn:hover {
+    border-color: #a78bfa;
+    color: #a78bfa;
+  }
+
+  /* full-width panel */
+  .full-width {
+    grid-column: 1 / -1;
+  }
+</style>
+</head>
+<body>
+
+<h1>Neurona Artificial — Interactivo</h1>
+<p class="subtitle">Ajusta los pesos y el bias. Observa cómo cambia la salida en tiempo real.</p>
+
+<div class="layout">
+
+  <!-- Panel izquierdo: controles -->
+  <div class="panel">
+    <h2>Entradas y Pesos</h2>
+
+    <p class="section-label">Valores de entrada (x)</p>
+    <div class="input-row">
+      <span class="input-label">x₁</span>
+      <input type="range" id="x1" min="0" max="1" step="0.01" value="0.8">
+      <span class="input-val" id="x1-val">0.80</span>
+    </div>
+    <div class="input-row">
+      <span class="input-label">x₂</span>
+      <input type="range" id="x2" min="0" max="1" step="0.01" value="0.5">
+      <span class="input-val" id="x2-val">0.50</span>
+    </div>
+    <div class="input-row">
+      <span class="input-label">x₃</span>
+      <input type="range" id="x3" min="0" max="1" step="0.01" value="0.3">
+      <span class="input-val" id="x3-val">0.30</span>
+    </div>
+
+    <p class="section-label" style="margin-top:16px;">Pesos (w) — importancia de cada entrada</p>
+    <div class="input-row weight-row">
+      <span class="input-label" style="color:#f9a8d4;">w₁</span>
+      <input type="range" id="w1" min="-2" max="2" step="0.01" value="0.6">
+      <span class="input-val" id="w1-val">0.60</span>
+    </div>
+    <div class="input-row weight-row">
+      <span class="input-label" style="color:#f9a8d4;">w₂</span>
+      <input type="range" id="w2" min="-2" max="2" step="0.01" value="0.8">
+      <span class="input-val" id="w2-val">0.80</span>
+    </div>
+    <div class="input-row weight-row">
+      <span class="input-label" style="color:#f9a8d4;">w₃</span>
+      <input type="range" id="w3" min="-2" max="2" step="0.01" value="-0.3">
+      <span class="input-val" id="w3-val">-0.30</span>
+    </div>
+
+    <p class="section-label" style="margin-top:16px;">Bias (b) — ajuste base</p>
+    <div class="input-row">
+      <span class="input-label" style="color:#fbbf24;">b</span>
+      <input type="range" id="bias" min="-2" max="2" step="0.01" value="0.1">
+      <span class="input-val" id="bias-val">0.10</span>
+    </div>
+
+    <p class="section-label" style="margin-top:16px;">Función de activación</p>
+    <div class="tabs">
+      <button class="tab active" data-fn="relu">ReLU</button>
+      <button class="tab" data-fn="sigmoid">Sigmoid</button>
+      <button class="tab" data-fn="tanh">Tanh</button>
+      <button class="tab" data-fn="step">Step</button>
+    </div>
+
+    <button class="btn" id="reset-btn">↺ Reiniciar valores</button>
+  </div>
+
+  <!-- Panel derecho: visualización y output -->
+  <div class="panel">
+    <h2>Visualización</h2>
+
+    <svg id="neuron-svg" viewBox="0 0 400 220">
+      <!-- Dendritas / entradas -->
+      <line id="line1" x1="70" y1="50" x2="200" y2="110" stroke="#93c5fd" stroke-width="2" opacity="0.6"/>
+      <line id="line2" x1="70" y1="110" x2="200" y2="110" stroke="#93c5fd" stroke-width="2" opacity="0.6"/>
+      <line id="line3" x1="70" y1="170" x2="200" y2="110" stroke="#93c5fd" stroke-width="2" opacity="0.6"/>
+
+      <!-- Labels entrada -->
+      <text x="12" y="54" fill="#93c5fd" font-size="11" font-family="monospace">x₁</text>
+      <circle id="dot-x1" cx="62" cy="50" r="14" fill="#1e2130" stroke="#93c5fd" stroke-width="1.5"/>
+      <text id="txt-x1" x="62" y="54" fill="#93c5fd" font-size="10" font-family="monospace" text-anchor="middle">0.80</text>
+
+      <text x="12" y="114" fill="#93c5fd" font-size="11" font-family="monospace">x₂</text>
+      <circle id="dot-x2" cx="62" cy="110" r="14" fill="#1e2130" stroke="#93c5fd" stroke-width="1.5"/>
+      <text id="txt-x2" x="62" y="114" fill="#93c5fd" font-size="10" font-family="monospace" text-anchor="middle">0.50</text>
+
+      <text x="12" y="174" fill="#93c5fd" font-size="11" font-family="monospace">x₃</text>
+      <circle id="dot-x3" cx="62" cy="170" r="14" fill="#1e2130" stroke="#93c5fd" stroke-width="1.5"/>
+      <text id="txt-x3" x="62" y="174" fill="#93c5fd" font-size="10" font-family="monospace" text-anchor="middle">0.30</text>
+
+      <!-- Pesos en líneas -->
+      <text id="lbl-w1" x="118" y="68" fill="#f9a8d4" font-size="10" font-family="monospace">w=0.60</text>
+      <text id="lbl-w2" x="118" y="105" fill="#f9a8d4" font-size="10" font-family="monospace">w=0.80</text>
+      <text id="lbl-w3" x="118" y="158" fill="#f9a8d4" font-size="10" font-family="monospace">w=-0.30</text>
+
+      <!-- Soma (cuerpo neuronal) -->
+      <circle id="soma" cx="200" cy="110" r="38" fill="#1e2130" stroke="#a78bfa" stroke-width="2"/>
+      <text x="200" y="100" fill="#a78bfa" font-size="9" font-family="monospace" text-anchor="middle">Σ + f()</text>
+      <text id="soma-val" x="200" y="120" fill="#e2e8f0" font-size="13" font-family="monospace" text-anchor="middle" font-weight="bold">0.00</text>
+      <text id="soma-fn" x="200" y="133" fill="#7c8db5" font-size="9" font-family="monospace" text-anchor="middle">ReLU</text>
+
+      <!-- Axón / salida -->
+      <line x1="238" y1="110" x2="330" y2="110" stroke="#86efac" stroke-width="2.5"/>
+      <polygon points="330,104 342,110 330,116" fill="#86efac"/>
+
+      <!-- Output -->
+      <text x="350" y="104" fill="#86efac" font-size="10" font-family="monospace" text-anchor="middle">ŷ</text>
+      <circle id="output-dot" cx="356" cy="110" r="16" fill="#1e2130" stroke="#86efac" stroke-width="2"/>
+      <text id="txt-output" x="356" y="115" fill="#86efac" font-size="11" font-family="monospace" text-anchor="middle" font-weight="bold">0.00</text>
+
+      <!-- Bias indicator -->
+      <text x="193" y="165" fill="#fbbf24" font-size="9" font-family="monospace" text-anchor="middle">bias</text>
+      <line x1="200" y1="170" x2="200" y2="148" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <text id="lbl-bias" x="193" y="178" fill="#fbbf24" font-size="9" font-family="monospace" text-anchor="middle">0.10</text>
+    </svg>
+
+    <div class="output-block">
+      <div class="formula" id="formula-display">
+        z = (0.80×0.60) + (0.50×0.80) + (0.30×-0.30) + 0.10 = <span id="z-val">0.00</span><br>
+        ŷ = ReLU(<span id="z-val2">0.00</span>) = <span id="y-val">0.00</span>
+      </div>
+      <div class="output-bar-wrap">
+        <div class="output-bar" id="output-bar" style="width:0%; background:#86efac;">
+          <span id="bar-label"></span>
+        </div>
+      </div>
+      <div class="output-number" id="output-big">0.000</div>
+      <div class="activation-badge" id="act-badge">Inactiva</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card" id="card-z">
+        <div class="label">Suma ponderada (z)</div>
+        <div class="value" id="info-z">0.000</div>
+      </div>
+      <div class="info-card" id="card-y">
+        <div class="label">Salida f(z)</div>
+        <div class="value" id="info-y">0.000</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel inferior: comparación biológica -->
+  <div class="panel full-width">
+    <h2>Neurona Biológica vs Neurona Artificial</h2>
+    <table class="bio-table">
+      <thead>
+        <tr>
+          <th>Componente</th>
+          <th class="bio-cell">Neurona biológica</th>
+          <th class="ai-cell">Neurona artificial (este demo)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Recepción de señales</td>
+          <td class="bio-cell">Dendritas reciben impulsos eléctricos de otras neuronas</td>
+          <td class="ai-cell">Entradas x₁, x₂, x₃ — valores numéricos</td>
+        </tr>
+        <tr>
+          <td>Importancia de señales</td>
+          <td class="bio-cell">Sinapsis más fuertes transmiten más señal</td>
+          <td class="ai-cell">Pesos w₁, w₂, w₃ — multiplican cada entrada</td>
+        </tr>
+        <tr>
+          <td>Umbral base</td>
+          <td class="bio-cell">Potencial de reposo de la membrana celular (~-70mV)</td>
+          <td class="ai-cell">Bias b — desplaza el umbral de activación</td>
+        </tr>
+        <tr>
+          <td>Integración</td>
+          <td class="bio-cell">El soma suma todas las señales entrantes</td>
+          <td class="ai-cell">z = Σ(wᵢ·xᵢ) + b — suma ponderada</td>
+        </tr>
+        <tr>
+          <td>Decisión de disparo</td>
+          <td class="bio-cell">Si suma supera el umbral (-55mV), dispara un potencial de acción</td>
+          <td class="ai-cell">Función de activación f(z): ReLU, Sigmoid, etc.</td>
+        </tr>
+        <tr>
+          <td>Transmisión</td>
+          <td class="bio-cell">El axón propaga el pulso a otras neuronas</td>
+          <td class="ai-cell">Salida ŷ se envía como entrada a la siguiente capa</td>
+        </tr>
+        <tr>
+          <td>Aprendizaje</td>
+          <td class="bio-cell">Plasticidad sináptica — conexiones se fortalecen o debilitan</td>
+          <td class="ai-cell">Gradient descent — los pesos w se ajustan minimizando el error</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  const defaults = { x1:0.8, x2:0.5, x3:0.3, w1:0.6, w2:0.8, w3:-0.3, bias:0.1 };
+  let activationFn = 'relu';
+
+  const ids = ['x1','x2','x3','w1','w2','w3','bias'];
+  const sliders = {};
+  const vals = {};
+
+  ids.forEach(id => {
+    sliders[id] = document.getElementById(id);
+    vals[id] = document.getElementById(id + '-val');
+    sliders[id].addEventListener('input', update);
+  });
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activationFn = tab.dataset.fn;
+      update();
+    });
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    ids.forEach(id => { sliders[id].value = defaults[id]; });
+    update();
+  });
+
+  function activate(z, fn) {
+    switch(fn) {
+      case 'relu':    return Math.max(0, z);
+      case 'sigmoid': return 1 / (1 + Math.exp(-z));
+      case 'tanh':    return Math.tanh(z);
+      case 'step':    return z >= 0 ? 1 : 0;
+    }
+  }
+
+  function fmt(n) { return n.toFixed(3); }
+  function fmt2(n) { return (n >= 0 ? '+' : '') + n.toFixed(2); }
+
+  function lerp(a, b, t) { return a + (a - b) * t; }
+
+  function update() {
+    const v = {};
+    ids.forEach(id => {
+      const raw = parseFloat(sliders[id].value);
+      v[id] = raw;
+      vals[id].textContent = raw.toFixed(2);
+    });
+
+    const z = v.x1*v.w1 + v.x2*v.w2 + v.x3*v.w3 + v.bias;
+    const y = activate(z, activationFn);
+
+    // SVG updates
+    document.getElementById('txt-x1').textContent = v.x1.toFixed(2);
+    document.getElementById('txt-x2').textContent = v.x2.toFixed(2);
+    document.getElementById('txt-x3').textContent = v.x3.toFixed(2);
+    document.getElementById('lbl-w1').textContent = 'w=' + v.w1.toFixed(2);
+    document.getElementById('lbl-w2').textContent = 'w=' + v.w2.toFixed(2);
+    document.getElementById('lbl-w3').textContent = 'w=' + v.w3.toFixed(2);
+    document.getElementById('lbl-bias').textContent = v.bias.toFixed(2);
+    document.getElementById('soma-val').textContent = fmt(z);
+    document.getElementById('soma-fn').textContent = activationFn.charAt(0).toUpperCase() + activationFn.slice(1);
+    document.getElementById('txt-output').textContent = fmt(y);
+
+    // Line opacity based on weight magnitude
+    ['1','2','3'].forEach(i => {
+      const w = Math.abs(v['w' + i]);
+      const opacity = 0.2 + Math.min(w / 2, 1) * 0.8;
+      document.getElementById('line' + i).setAttribute('opacity', opacity.toFixed(2));
+      const strokeW = 1 + Math.min(w, 2) * 1.5;
+      document.getElementById('line' + i).setAttribute('stroke-width', strokeW.toFixed(1));
+      // negative weights: red tint
+      document.getElementById('line' + i).setAttribute('stroke', v['w' + i] < 0 ? '#f87171' : '#93c5fd');
+    });
+
+    // Soma color
+    const soma = document.getElementById('soma');
+    if (y > 0.7) soma.setAttribute('stroke', '#86efac');
+    else if (y > 0.3) soma.setAttribute('stroke', '#a78bfa');
+    else soma.setAttribute('stroke', '#475569');
+
+    // Formula
+    document.getElementById('z-val').textContent = fmt(z);
+    document.getElementById('z-val2').textContent = fmt(z);
+    document.getElementById('y-val').textContent = fmt(y);
+
+    // Output bar
+    let barPct, barColor;
+    if (activationFn === 'tanh') {
+      barPct = ((y + 1) / 2) * 100;
+    } else if (activationFn === 'relu') {
+      barPct = Math.min(y / 3, 1) * 100;
+    } else {
+      barPct = y * 100;
+    }
+    barPct = Math.max(0, Math.min(100, barPct));
+
+    if (y > 0.7) barColor = '#86efac';
+    else if (y > 0.4) barColor = '#a78bfa';
+    else if (y > 0) barColor = '#93c5fd';
+    else barColor = '#ef4444';
+
+    const bar = document.getElementById('output-bar');
+    bar.style.width = barPct + '%';
+    bar.style.background = barColor;
+
+    // Big number
+    const bigNum = document.getElementById('output-big');
+    bigNum.textContent = fmt(y);
+    bigNum.style.color = barColor;
+
+    // Badge
+    const badge = document.getElementById('act-badge');
+    if (y > 0.7) {
+      badge.textContent = 'Activación fuerte — neurona disparando';
+      badge.style.background = '#86efac22';
+      badge.style.color = '#86efac';
+    } else if (y > 0.3) {
+      badge.textContent = 'Activación moderada';
+      badge.style.background = '#a78bfa22';
+      badge.style.color = '#a78bfa';
+    } else if (y > 0) {
+      badge.textContent = 'Activación débil';
+      badge.style.background = '#93c5fd22';
+      badge.style.color = '#93c5fd';
+    } else {
+      badge.textContent = 'Inactiva — no dispara (salida = 0)';
+      badge.style.background = '#ef444422';
+      badge.style.color = '#ef4444';
+    }
+
+    // Info cards
+    document.getElementById('info-z').textContent = fmt(z);
+    document.getElementById('info-y').textContent = fmt(y);
+
+    const cardZ = document.getElementById('card-z');
+    const cardY = document.getElementById('card-y');
+    cardZ.classList.toggle('highlight', Math.abs(z) > 0.5);
+    cardY.classList.toggle('highlight', y > 0.3);
+
+    // Output dot color
+    document.getElementById('output-dot').setAttribute('stroke', barColor);
+    document.getElementById('txt-output').setAttribute('fill', barColor);
+  }
+
+  update();
+</script>
+</body>
+</html>
