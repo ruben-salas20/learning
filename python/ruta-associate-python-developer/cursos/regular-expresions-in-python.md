@@ -46,5 +46,9 @@ Para buscar y remplazar en las cadenas disponemos de los siguiente métodos:
 - `string.replace(old, new, count)`: esta función nos permite remplazar en el String, los parámetros inician siendo la cadena a remplazar, el nuevo texto y `count` es un parámetro opcional que nos elije marcar cuantas veces se desea remplazar de izquierda a derecha
 
 ---
-### 1.4 Formato posicional:
+
+## 2. Formateando cadenas
+
+---
+### 2.1 Formato posicional
 

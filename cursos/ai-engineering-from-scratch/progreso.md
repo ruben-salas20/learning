@@ -14,10 +14,11 @@ ubicacion-curso: D:\Mis Archivos\Documentos\Cursos\ai-engineering-from-scratch
 - **SO de trabajo**: WSL2 + Ubuntu 24.04 (dentro de Windows 11). Decisión 2026-05-27.
 - **Gestor Python**: `uv` (no pip). Más rápido, junta runtime + paquetes + venvs.
 - **Workspace de trabajo activo**: `~/ai-eng/` en **Linux nativo** (RÁPIDO, sin gotchas de venv). Decisión 2026-05-27.
-- **Flujo de archivos** (3 lugares):
+- **Flujo de archivos** (4 lugares):
   - Código en curso → `~/ai-eng/` (WSL nativo)
-  - Ejercicios terminados que valen → copiar a `/mnt/d/Mis Archivos/Documentos/Learning/cursos/ai-engineering-from-scratch/ejercicios-mios/` (git/Obsidian)
-  - Apuntes en español → Claude los escribe directo en `.../Learning/cursos/ai-engineering-from-scratch/notas/`
+  - Ejercicios terminados que valen → copiar a `.../Learning/cursos/ai-engineering-from-scratch/ejercicios-mios/` (git/Obsidian)
+  - **Clase traducida y explicada** (lectura) → Claude la escribe en `.../cursos/ai-engineering-from-scratch/docs/` (traducción del en.md + glosado inglés + conceptos con analogías). Mantiene el chat limpio.
+  - **Apunte destilado** (repaso) → Claude lo escribe en `.../cursos/ai-engineering-from-scratch/notas/` (condensado, después de entender).
 - **Dato WSL clave**: `/mnt/d` (disco Windows) es LENTO desde WSL; `~` (Linux nativo) es rápido. Por eso el venv vive en `~`.
 
 ## Cómo trabajamos (reglas acordadas)
@@ -26,7 +27,7 @@ ubicacion-curso: D:\Mis Archivos\Documentos\Cursos\ai-engineering-from-scratch
 - **Inglés**: día 1, con glosado progresivo (leo término en inglés → Claude explica → construyo vocabulario).
 - **Lenguajes**: Python primario SIEMPRE. Rust y Julia cuando el curso los pida, en secuencia (NO las 4 versiones de cada lección).
 - **Continuidad**: trabajo SIEMPRE desde la carpeta `Learning` (nunca desde la del curso) para que Engram mantenga el proyecto `learning`.
-- **Loop por lección**: (1) traducir docs/en.md marcando términos EN → (2) Claude explica a mi nivel con analogías → (3) Build It guiado sin código masticado → (4) evaluar comprensión → (5) destilar apunte en español.
+- **Loop por lección**: (1) Claude escribe la **clase traducida+explicada en `docs/`** (no la vuelca en el chat) → (2) leo el doc y charlamos las dudas → (3) Build It guiado sin código masticado → (4) evaluar comprensión → (5) destilar **apunte en `notas/`**.
 - **Evaluación por fase**: usar el skill `check-understanding` al cerrar cada fase antes de avanzar.
 
 ## Línea base — Placement quiz (find-your-level)
@@ -56,6 +57,8 @@ ubicacion-curso: D:\Mis Archivos\Documentos\Cursos\ai-engineering-from-scratch
 |---|---|---|---|---|
 | 2026-05-27 | — | Placement quiz | ✅ | 2/10 → entrada Phase 1 (pero elijo empezar en Phase 0) |
 | 2026-05-27 | 0 | 01-dev-environment | ✅ entendida | Entorno completo (7/7 + GPU). Apunte ES en notas/. Evaluación de comprensión: 3/3 con sus palabras (venv, CUDA techo, PATH). Ejercicio 3: hello world en Python/JS/Julia/Rust ✅ (sintió interpretado vs compilado). Ejercicios → ejercicios-mios/fase00-leccion01. |
-| 2026-05-29 | 0 | 02-git-and-collaboration | ⬜ pendiente | (próxima) |
+| 2026-06-08 | 0 | 02-git-and-collaboration | ✅ entendida | Pasada por evaluación 5/6. Correcciones: repo local↔remoto, `origin`=alias. Gap cubierto: .pt/.pth/.safetensors. Conoce switch/restore. Tiene experiencia real con repos/.gitignore/logs. Apunte ES en notas/. |
+| 2026-06-08 | 0 | 03-gpu-setup-and-cloud | ✅ entendida | Build It en RTX 3050: benchmark 2x (warmup+1 op+CPU optimizado), ~3B fp16. Conceptos: GPU paralelo, VRAM, fp16/regla del pulgar, cuantización 4bit (7B no entra fp16 pero sí a 4bit), synchronize/async. Comprensión 3/3. Clase en docs/, apunte en notas/. |
+| 2026-06-08 | 0 | 04-apis-and-keys | ⬜ pendiente | (próxima) |
 
 > Estados: ⬜ pendiente · 🔄 en curso · ✅ entendida · ⚠️ revisar
